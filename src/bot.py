@@ -11,7 +11,7 @@ def begining (message):
 
 
 def get_text_messages(message):
-    bot.send_message(message.from_user.id, "лол ничего не работает")
+    bot.send_message(message.from_user.id, "Напиши мне привет, чтобы начать")
     keyboard = types.InlineKeyboardMarkup()  # наша клавиатура
     key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')  # кнопка «Да»
     keyboard.add(key_yes)  # добавляем кнопку в клавиатуру
