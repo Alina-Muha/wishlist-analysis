@@ -9,7 +9,7 @@ game_list = [x for x in sale_list.select('#main > section > div > div > ul > li'
 # сверху пример Толика, я не понимаю как выбирать эти  #main > section > div > div > ul > li
 
 steam_sale_list = BS(get('https://store.steampowered.com/wishlist/profiles/76561198049638242/#sort=order').text,
-                'html.parser')      #ссылка, с которой нужно уметь доставать значение g_rgWishlistDa - нужно только оно,
+                'html.parser')      #ссылка, с которой нужно уметь доставать значение g_rgWishlistData - нужно только оно,
                                     # как это сделать?
 
 steam_game_list = [x for x in steam_sale_list.select('html class="responsive" lang="en"> body > div > div > scripts')]
