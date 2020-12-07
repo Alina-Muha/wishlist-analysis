@@ -19,6 +19,17 @@ def represent_Int(a):
         return False
 
 
+def get_steam_id_from_url(profile_url=str):
+    steam_id = profile_url.split('/')[-1]
+    if steam_id == '': steam_id_url = profile_url.split('/')[-2]
+    if represent_Int(steam_id):  # if custom id int: id = int(id)  else: id = resolve(custom id)
+        steam_id = int(steam_id)
+    else:
+        steam_id = steam_user_info.resolve_vanity_url(vanityURL=steam_id,
+                                                      url_type=1)['response']['steamid']
+    return steam_id
+
+
 def str_to_list_of_dicts(text=str):
     index_l = text.find('[')
     index_r = text.rfind(']')
@@ -43,29 +54,23 @@ def check_if_game_on_sale(game_url):
 
 
 def main(url=str):
-    profile_url = url
-    steam_id_url = profile_url.split('/')[-1]
-    if steam_id_url == '': steam_id_url = profile_url.split('/')[-2]
-    url_steam_id = steam_id_url  # самый конец ссылки на профиль
-    if represent_Int(url_steam_id):  # if custom id int: id = int(id)  else: id = resolve(custom id)
-        steam_id = int(url_steam_id)
-    else:
-        steam_id = steam_user_info.resolve_vanity_url(vanityURL=url_steam_id,
-                                                      url_type=1)['response']['steamid']  # получаем id через custom id
-    # верхнее обернуть в функию :url -> steam_id
-    user_summary = steam_user_info.get_player_summaries(steam_id)['response']['players'][0]
+    steam_id = get_steam_id_from_url(url)
+    # user_summary = steam_user_info.get_player_summaries(steam_id)['response']['players'][0]
     link_wishlist_on_sale = f'https://store.steampowered.com/wishlist/profiles/{steam_id}/#sort=discount&discount_any=1'
     sale_list = BS(get(link_wishlist_on_sale).text, 'html.parser')
     wishlist_games_raw = [elem for elem in sale_list.select('body > div > div > div > script')][0].contents[0]
     helper = wishlist_games_raw.split('var')[1]
     wishlist_games = str_to_list_of_dicts(helper)  # !
+    list_games_on_sale = []
     for game in wishlist_games:
         res = check_if_game_on_sale(f'https://store.steampowered.com/app/{game["appid"]}')
         if type(res) == dict and res['name'].count('Players Like You Love') == 0:  # second part is bugfix
-            print(res['name'][:-1:], res['price'], 'discount =', res['discount'])
-    print('finished')
-
+            list_games_on_sale.append({'Name': res['name'][:-1:], 'price': res['price'], 'discount': res['discount']})
+            #print(res['name'][:-1:], res['price'], 'discount =', res['discount'])
+    #print('finished')
+    return list_games_on_sale
 
 if __name__ == '__main__':
     start_url = str(input())  # example https://steamcommunity.com/id/lElysiuMl
-    main(start_url)
+    sale_list = main(start_url)
+
