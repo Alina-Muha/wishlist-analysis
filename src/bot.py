@@ -2,7 +2,7 @@ import dp
 import telebot
 from telebot import types
 
-bot = telebot.TeleBot('')
+bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
 
 
 @bot.message_handler(commands=["start"])
@@ -36,13 +36,19 @@ def help_command(message):
 
 @bot.message_handler(commands=["reg"])
 def registration(message):
-    bot.send_message(message.from_user.id, "Введи имя пользователя steam")
+    bot.send_message(message.from_user.id, "Введи ссылку на аккаунт steam")
     bot.register_next_step_handler(message, get_name)  # следующий шаг – функция get_name
 
 
-def get_name(message):  # получаем имя пользователя
-    global name
-    name = message.text
+def get_name(message):  # получаем ссылку на профиль
+    global link
+    link = message.text
+
+
+@bot.message_handler(commands=["link"])
+def name_output(message):
+    bot.send_message(message.from_user.id, "Вы ввели ссылку на профиль:")
+    bot.send_message(message.from_user.id, link)
 
 
 if __name__ == '__main__':
