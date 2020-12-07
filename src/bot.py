@@ -1,6 +1,6 @@
-import dp
 import telebot
 from telebot import types
+from src.steam_web_api_iteractions2 import main
 
 bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
 
@@ -43,12 +43,37 @@ def registration(message):
 def get_name(message):  # получаем ссылку на профиль
     global link
     link = message.text
+    if check_link_is_valid(link):
+        bot.send_message(message.from_user.id, "Отлично! Что ты хочешь узнать?")
+    if not check_link_is_valid(link):
+        bot.send_message(message.from_user.id, "Это не является ссылкой на профиль. Нижми /reg, чтобы продолжить")
+
+
+def check_link_is_valid(link: str):  # link -> bool
+    components = link.split('/')
+    valid = False
+    for item in range(len(components)):
+        if components[item] == 'steamcommunity.com':
+            if components[item + 1] == 'profiles' or components[item + 1] == 'id':
+                valid = True
+                try:
+                    id = components[item + 2]
+                except IndexError:
+                    break
+    return valid
 
 
 @bot.message_handler(commands=["link"])
 def name_output(message):
     bot.send_message(message.from_user.id, "Вы ввели ссылку на профиль:")
     bot.send_message(message.from_user.id, link)
+
+
+
+@bot.message_handler(commands=["game"])
+def find_out_price(message):
+
+
 
 
 if __name__ == '__main__':
