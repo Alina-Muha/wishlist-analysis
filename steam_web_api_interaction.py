@@ -20,8 +20,11 @@ def represent_Int(a):
 
 
 def get_steam_id_from_url(profile_url=str):
-    steam_id = profile_url.split('/')[-1]
-    if steam_id == '': steam_id_url = profile_url.split('/')[-2]
+    steam_id = ''
+    url_components = profile_url.split('/')
+    for i in range(len(url_components)):
+        if url_components[i] == 'profiles' or url_components[i] == 'id':
+            steam_id = str(url_components[i + 1])
     if represent_Int(steam_id):  # if custom id int: id = int(id)  else: id = resolve(custom id)
         steam_id = int(steam_id)
     else:
@@ -66,11 +69,12 @@ def main(url=str):
         res = check_if_game_on_sale(f'https://store.steampowered.com/app/{game["appid"]}')
         if type(res) == dict and res['name'].count('Players Like You Love') == 0:  # second part is bugfix
             list_games_on_sale.append({'Name': res['name'][:-1:], 'price': res['price'], 'discount': res['discount']})
-            #print(res['name'][:-1:], res['price'], 'discount =', res['discount'])
-    #print('finished')
+            # print(res['name'][:-1:], res['price'], 'discount =', res['discount'])
+    # print('finished')
     return list_games_on_sale
+
 
 if __name__ == '__main__':
     start_url = str(input())  # example https://steamcommunity.com/id/lElysiuMl
     sale_list = main(start_url)
-
+    # print(sale_list)
