@@ -21,16 +21,21 @@ def callback_inline(call):
     # Если сообщение из чата с ботом
     if call.data == "yes":
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text="*Здесь будет документация*. Теперь введи /reg чтобы начать")
+                              text="Этот бот поможет тебе получить информацию о скидках в Steam"
+                                   " на игры из твоего wishlist-а или wishlist-а твоих друзей. "
+                                   "Введи /help, чтобы увидеть список возможных команд.")
     if call.data == "no":
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text="Тогда давай начнём.")
+                              text="Тогда давай начнём")
 
 
 @bot.message_handler(commands=["help"])
 def help_command(message):
-    help_message = "Здесь будет список команд и того, что они делают \nДоступные команды:" \
-                   "\n start - приветствие \n reg - ввести имя пользователя steam и т.д."
+    help_message = "Это список доступных команд. Введи одну из них, чтобы получить необходимую информацию. " \
+                   "\n /start - начать работу с ботом. \n /reg - регистрация. " \
+                   "Напиши это, чтобы ввести ссылку на аккаунт steam для дальнейшей работы. \n /link - " \
+                   "эта команда нужна, чтобы узнать последнюю введенную ссылку. \n /inf - получить информацию" \
+                   "о стоимости игр и скидках на них"
     bot.send_message(message.from_user.id, help_message)
 
 
@@ -44,7 +49,7 @@ def get_name(message):  # получаем ссылку на профиль
     global link
     link = message.text
     if check_link_is_valid(link):
-        bot.send_message(message.from_user.id, "Отлично! Что ты хочешь узнать?")
+        bot.send_message(message.from_user.id, "Отлично! Я запомнил")
     if not check_link_is_valid(link):
         bot.send_message(message.from_user.id, "Это не является ссылкой на профиль. Нижми /reg, чтобы продолжить")
 
@@ -63,17 +68,20 @@ def check_link_is_valid(link: str):  # link -> bool
     return valid
 
 
+@bot.message_handler(commands=["inf"])
+def information(message):
+    sale_list = main(link)
+    list_g = []
+    for game in sale_list:
+        list_g.append(f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка на нее составляет {game["discount"]}')
+    for i in list_g:
+        bot.send_message(message.from_user.id, i)
+
+
 @bot.message_handler(commands=["link"])
 def name_output(message):
-    bot.send_message(message.from_user.id, "Вы ввели ссылку на профиль:")
+    bot.send_message(message.from_user.id, "Последняя введенная ссылка:")
     bot.send_message(message.from_user.id, link)
-
-
-
-@bot.message_handler(commands=["game"])
-def find_out_price(message):
-
-
 
 
 if __name__ == '__main__':
