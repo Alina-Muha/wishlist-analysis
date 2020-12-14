@@ -6,7 +6,8 @@ bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
 
 
 @bot.message_handler(commands=["start"])
-def any_msg(message):
+def start(message):
+    user_id = message.from_user.id
     bot.send_message(message.from_user.id, "Привет!")
     keyboard = types.InlineKeyboardMarkup()
     callback_yes = types.InlineKeyboardButton(text="Да", callback_data="yes")
@@ -71,11 +72,15 @@ def check_link_is_valid(link: str):  # link -> bool
 @bot.message_handler(commands=["inf"])
 def information(message):
     sale_list = main(link)
-    list_g = []
-    for game in sale_list:
-        list_g.append(f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка на нее составляет {game["discount"]}')
-    for i in list_g:
-        bot.send_message(message.from_user.id, i)
+    if len(sale_list) == 0:
+        bot.send_message(message.from_user.id, "В wishlist-е нет игр со скидками, либо данные об играх скрыты")
+    else:
+        list_g = []
+        for game in sale_list:
+            list_g.append(
+                f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка на нее составляет {game["discount"]}')
+        for i in list_g:
+            bot.send_message(message.from_user.id, i)
 
 
 @bot.message_handler(commands=["link"])
