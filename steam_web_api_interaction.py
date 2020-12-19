@@ -10,6 +10,7 @@ steam_user_info = ISteamUser(steam_api_key=STEAM_API_KEY)
 
 
 # ЛЮБОЙ парсинг может вдруг не заработать
+# https://store.steampowered.com/api/appdetails?appids=967390
 
 def represent_Int(a):
     try:
@@ -26,11 +27,10 @@ def get_steam_id_from_url(profile_url=str):
         if url_components[i] == 'profiles' or url_components[i] == 'id':
             steam_id = str(url_components[i + 1])
     if represent_Int(steam_id):  # if custom id int: id = int(id)  else: id = resolve(custom id)
-        steam_id = int(steam_id)
+        return int(steam_id)
     else:
-        steam_id = steam_user_info.resolve_vanity_url(vanityURL=steam_id,
-                                                      url_type=1)['response']['steamid']
-    return steam_id
+        return steam_user_info.resolve_vanity_url(vanityURL=steam_id,
+                                                  url_type=1)['response']['steamid']
 
 
 def str_to_list_of_dicts(text=str):
@@ -39,9 +39,32 @@ def str_to_list_of_dicts(text=str):
     text = text[index_l:index_r + 1:]
     answer = json.loads(text)
     return answer
+    # answer is [{'appid', 'priority', 'added'},{},...]
 
 
-def check_if_game_on_sale(game_url):
+def get_data_about_game(app_id):
+    try:
+        raw_game_details = BS(get(f'https://store.steampowered.com/api/appdetails?appids={app_id}').text, 'html.parser')
+        game_details = json.loads(raw_game_details.text)
+        if not game_details[str(app_id)]['success']:
+            return {}
+        game_data = game_details[str(app_id)]['data']
+        try:
+            if not game_data['is_free']:
+                if game_data['price_overview']['discount_percent'] == 0:
+                    return {}
+                return {"Name": game_data['name'],
+                        "price": game_data['price_overview']['final_formatted'],
+                        "discount": game_data['price_overview']['discount_percent']}
+            else:
+                return {}
+        except KeyError:
+            return {}
+    except ValueError:
+        return {}
+
+
+def check_if_game_on_sale(game_url):  # not used
     game_data = BS(get(game_url).text, 'html.parser')
     summaries = {}
     try:
@@ -56,25 +79,38 @@ def check_if_game_on_sale(game_url):
     # dlc_list = game_data.find_all('div', {'class': 'game_area_dlc_list'})
 
 
-def main(url=str):
+def getting_disc_v1(appid, list_games_on_sale):  # not used
+    res = check_if_game_on_sale(f'https://store.steampowered.com/app/{game["appid"]}')
+    if type(res) == dict and res['name'].count('Players Like You Love') == 0:  # second part is bugfix
+        list_games_on_sale.append({'Name': res['name'][:-1:], 'price': res['price'], 'discount': res['discount']})
+
+
+def obtain_sales_data(url):
+    '''
+    returns:
+            [True, [{'Name', 'price', 'discount'},{}...]]
+        or
+            [False, <link to privacy settings>]
+    '''
     steam_id = get_steam_id_from_url(url)
-    # user_summary = steam_user_info.get_player_summaries(steam_id)['response']['players'][0]
-    link_wishlist_on_sale = f'https://store.steampowered.com/wishlist/profiles/{steam_id}/#sort=discount&discount_any=1'
-    sale_list = BS(get(link_wishlist_on_sale).text, 'html.parser')
-    wishlist_games_raw = [elem for elem in sale_list.select('body > div > div > div > script')][0].contents[0]
-    helper = wishlist_games_raw.split('var')[1]
-    wishlist_games = str_to_list_of_dicts(helper)  # !
+    wishlist_link = f'https://store.steampowered.com/wishlist/profiles/{steam_id}/#sort=discount&discount_any=1'
+    raw_wl_data = BS(get(wishlist_link).text, 'html.parser')
+    wishlist_games_raw = [elem for elem in raw_wl_data.select('body > div > div > div > script')][0].contents[0]
+    wishlist_games = str_to_list_of_dicts(wishlist_games_raw.split('var')[1])  # [{'appid', 'priority', 'added'},...]
     list_games_on_sale = []
     for game in wishlist_games:
-        res = check_if_game_on_sale(f'https://store.steampowered.com/app/{game["appid"]}')
-        if type(res) == dict and res['name'].count('Players Like You Love') == 0:  # second part is bugfix
-            list_games_on_sale.append({'Name': res['name'][:-1:], 'price': res['price'], 'discount': res['discount']})
-            # print(res['name'][:-1:], res['price'], 'discount =', res['discount'])
-    # print('finished')
-    return list_games_on_sale
+        game_data = get_data_about_game(game['appid'])
+        if game_data:  # not empty
+            list_games_on_sale.append(game_data)
+    if len(list_games_on_sale) == 0:
+        return [False, f'https://steamcommunity.com/profiles/{steam_id}/edit/settings']
+    return [True, list_games_on_sale]
 
 
 if __name__ == '__main__':
-    start_url = str(input())  # example https://steamcommunity.com/id/lElysiuMl
-    sale_list = main(start_url)
-    # print(sale_list)
+    # example https://steamcommunity.com/id/lElysiuMl
+    # example with no games on sale https://steamcommunity.com/profiles/76561198098291894
+    # example with private game data https://steamcommunity.com/id/izediv
+    start_url = str(input())
+    sale_list = obtain_sales_data(start_url)
+    print(sale_list)
