@@ -1,5 +1,7 @@
 import sqlite3
+
 const = 0
+
 
 def create_connection():
     conn = sqlite3.connect('users.db')  # записать в отдельный файл
@@ -25,7 +27,7 @@ def users_table_output(cur):
     pass
 
 
-def users_add(cur,conn, user_id,link):
+def users_add(cur, conn, user_id, link):
     global const
     const += 1
     cur.execute("INSERT INTO text_index VALUES (?,?,?)", (const, user_id, link))
@@ -47,4 +49,3 @@ connection.commit()'''
 
 if __name__ == "__main__":
     create_connection()
-
