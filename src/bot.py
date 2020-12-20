@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from src.steam_web_api_iteractions2 import obtain_sales_data
+from src.steam_web_api_interactions import obtain_sales_data
 from src.data_base_test import add_link, add_user, print_link
 # import src.data_base as base
 
@@ -49,7 +49,11 @@ def get_name(message):
 def check_link_is_valid(link: str):
     components = link.split('/')
     valid = False
-    for item in range(len(components)):
+    for 
+    
+    
+    
+    m in range(len(components)):
         if components[item] == 'steamcommunity.com':
             if components[item + 1] == 'profiles' or components[item + 1] == 'id':
                 valid = True
