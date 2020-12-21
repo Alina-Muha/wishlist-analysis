@@ -49,11 +49,7 @@ def get_name(message):
 def check_link_is_valid(link: str):
     components = link.split('/')
     valid = False
-    for 
-    
-    
-    
-    m in range(len(components)):
+    for item in range(len(components)):
         if components[item] == 'steamcommunity.com':
             if components[item + 1] == 'profiles' or components[item + 1] == 'id':
                 valid = True
