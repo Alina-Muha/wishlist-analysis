@@ -46,6 +46,10 @@ def str_to_list_of_dicts(text=str):
 def get_data_about_game(app_id):
     try:
         raw_game_details = BS(get(f'https://store.steampowered.com/api/appdetails?appids={app_id}').text, 'html.parser')
+        if not raw_game_details:
+            return {}
+        if raw_game_details.text == 'null':
+            return {}
         game_details = json.loads(raw_game_details.text)
         if not game_details[str(app_id)]['success']:
             return {}
@@ -101,6 +105,7 @@ def obtain_sales_data(url):
     wishlist_games = str_to_list_of_dicts(wishlist_games_raw.split('var')[1])  # [{'appid', 'priority', 'added'},...]
     list_games_on_sale = []
     for game in wishlist_games:
+        print(game['appid'])
         game_data = get_data_about_game(game['appid'])
         if game_data:  # not empty
             list_games_on_sale.append(game_data)
@@ -113,6 +118,7 @@ if __name__ == '__main__':
     # example https://steamcommunity.com/id/lElysiuMl
     # example with no games on sale https://steamcommunity.com/profiles/76561198098291894
     # example with private game data https://steamcommunity.com/id/izediv
+    print('started, test game:')
     print(get_data_about_game(859570))
     start_url = str(input())
     sale_list = obtain_sales_data(start_url)
