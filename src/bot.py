@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
 from src.steam_web_api_interaction import obtain_sales_data
-from src.data_base_test import add_link, add_user, print_link
+from src.data_base import add_link, add_user, print_link
 # import src.data_base as base
 
 bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
