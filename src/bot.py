@@ -1,16 +1,18 @@
 import telebot
 from telebot import types
 from src.steam_web_api_interaction import obtain_sales_data
-from src.data_base import add_link, add_user, print_link
+
 # import src.data_base as base
 
 bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
 
 
+# cur, conn = base.create_connection()
+# base.create_users(cur, conn)
+
+
 @bot.message_handler(commands=["start"])
 def start(message):
-    user_id = message.from_user.id
-    add_user(user_id)
     bot.send_message(message.from_user.id, "Привет!")
     keyboard = types.InlineKeyboardMarkup()
     callback_yes = types.InlineKeyboardButton(text="Да", callback_data="yes")
@@ -37,16 +39,17 @@ def registration(message):
 
 
 def get_name(message):
+    global link
     link = message.text
     if check_link_is_valid(link):
         bot.send_message(message.from_user.id, "Отлично! Я запомнил")
         user_id = message.from_user.id
-        add_link(user_id, link)
-    else:
+        # base.users_add(cur, conn, user_id, link)
+    if not check_link_is_valid(link):
         bot.send_message(message.from_user.id, "Это не является ссылкой на профиль. Нижми /reg, чтобы продолжить")
 
 
-def check_link_is_valid(link: str):
+def check_link_is_valid(link: str):  # link -> bool
     components = link.split('/')
     valid = False
     for item in range(len(components)):
@@ -62,15 +65,11 @@ def check_link_is_valid(link: str):
 
 @bot.message_handler(commands=["inf"])
 def information(message):
-    user_id = message.from_user.id
-    link = print_link(user_id)
     result = obtain_sales_data(link)
     if result[0]:
         games_output(message, result)
     else:
         wishlist_settings(message)
-        global res
-        res = result[1]
 
 
 def games_output(message, result):
@@ -106,14 +105,13 @@ def callback_inline(call):
                               text=f'Открыть настройки приватности можно в клиенте стима PROFILE -'
                                    f' Edit profile - Privacy settings - My profile: Game details - '
                                    f'поставить Public либо по ссылке в браузерее (нужно быть там залогиненым):'
-                                   f' \n {res}')
+                                   f' \n *тут будет ссылка*')
 
 
 @bot.message_handler(commands=["link"])
 def name_output(message):
-    user_id = message.from_user.id
     bot.send_message(message.from_user.id, "Последняя введенная ссылка:")
-    bot.send_message(message.from_user.id, print_link(user_id))
+    bot.send_message(message.from_user.id, link)
 
 
 if __name__ == '__main__':
