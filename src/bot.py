@@ -69,6 +69,8 @@ def information(message):
     if result[0]:
         games_output(message, result)
     else:
+        global res
+        res = result[1]
         wishlist_settings(message)
 
 
@@ -105,7 +107,7 @@ def callback_inline(call):
                               text=f'Открыть настройки приватности можно в клиенте стима PROFILE -'
                                    f' Edit profile - Privacy settings - My profile: Game details - '
                                    f'поставить Public либо по ссылке в браузерее (нужно быть там залогиненым):'
-                                   f' \n *тут будет ссылка*')
+                                   f' \n {res}')
 
 
 @bot.message_handler(commands=["link"])
