@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from src.steam_web_api_interactions import obtain_sales_data
+from src.steam_web_api_interaction import obtain_sales_data
 from src.data_base_test import add_link, add_user, print_link
 # import src.data_base as base
 
