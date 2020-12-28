@@ -1,21 +1,14 @@
 import telebot
 from telebot import types
 from src.steam_web_api_interaction import obtain_sales_data
-from src.data_base import Connection_base
-# import src.data_base as base
 
-TOKEN_API = '1118942315:AAF3jlqsCCUttB8lj-W0GQ1sxNiHr98pkGU'
-
-
-bot = telebot.TeleBot(TOKEN_API)
-connection_base = Connection_base()
+bot = telebot.TeleBot('Token')
 
 
 @bot.message_handler(commands=["start"])
 def start(message):
-
-    user_id = message.from_user.id
-    connection_base.add_user(user_id)
+    global link
+    link = "-1"
     bot.send_message(message.from_user.id, "Привет!")
     keyboard = types.InlineKeyboardMarkup()
     callback_yes = types.InlineKeyboardButton(text="Да", callback_data="yes")
@@ -42,17 +35,18 @@ def registration(message):
 
 
 def get_name(message):
-    link = message.text
-    if check_link_is_valid(link):
+    global link
+    link_input = message.text
+    if check_link_is_valid(link_input):
         bot.send_message(message.from_user.id, "Отлично! Я запомнил")
-        user_id = message.from_user.id
-        connection_base.add_link(user_id, link)
+        link = link_input
     else:
         bot.send_message(message.from_user.id, "Это не является ссылкой на профиль. Нижми /reg, чтобы продолжить")
+        link = "-1"
 
 
-def check_link_is_valid(link: str):
-    components = link.split('/')
+def check_link_is_valid(link_input: str):  # link -> bool
+    components = link_input.split('/')
     valid = False
     for item in range(len(components)):
         if components[item] == 'steamcommunity.com':
@@ -67,15 +61,13 @@ def check_link_is_valid(link: str):
 
 @bot.message_handler(commands=["inf"])
 def information(message):
-    user_id = message.from_user.id
-    link = connection_base.print_link(user_id)
     result = obtain_sales_data(link)
     if result[0]:
         games_output(message, result)
     else:
-        wishlist_settings(message)
         global res
         res = result[1]
+        wishlist_settings(message)
 
 
 def games_output(message, result):
@@ -116,9 +108,11 @@ def callback_inline(call):
 
 @bot.message_handler(commands=["link"])
 def name_output(message):
-    user_id = message.from_user.id
-    bot.send_message(message.from_user.id, "Последняя введенная ссылка:")
-    bot.send_message(message.from_user.id, connection_base.print_link(user_id))
+    if link == "-1":
+        bot.send_message(message.from_user.id, "Ссылка на профиль еще не была введена. Чтобы ее ввести, нажми /reg")
+    else:
+        bot.send_message(message.from_user.id, "Последняя введенная ссылка:")
+        bot.send_message(message.from_user.id, link)
 
 
 if __name__ == '__main__':
