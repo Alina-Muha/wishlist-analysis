@@ -44,11 +44,11 @@ def print_link(user_id):
     return ourUser.link
 
 
-"""if __name__ == "__main__":
+if __name__ == "__main__":
     add_user("111")
     new = session.query(User).filter_by(user_id="111").first()
     print(new)
     add_link("111", "axaxaxa")
     new2 = session.query(User).filter_by(user_id="111").first()
-    print(print_link("111"))"""
+    print(print_link("111"))
 
