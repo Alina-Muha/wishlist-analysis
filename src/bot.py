@@ -1,16 +1,21 @@
 import telebot
 from telebot import types
 from src.steam_web_api_interaction import obtain_sales_data
-from src.data_base import add_link, add_user, print_link
+from src.data_base import Connection_base
 # import src.data_base as base
 
-bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
+TOKEN_API = '1118942315:AAF3jlqsCCUttB8lj-W0GQ1sxNiHr98pkGU'
+
+
+bot = telebot.TeleBot(TOKEN_API)
+connection_base = Connection_base()
 
 
 @bot.message_handler(commands=["start"])
 def start(message):
+
     user_id = message.from_user.id
-    add_user(user_id)
+    connection_base.add_user(user_id)
     bot.send_message(message.from_user.id, "Привет!")
     keyboard = types.InlineKeyboardMarkup()
     callback_yes = types.InlineKeyboardButton(text="Да", callback_data="yes")
@@ -41,7 +46,7 @@ def get_name(message):
     if check_link_is_valid(link):
         bot.send_message(message.from_user.id, "Отлично! Я запомнил")
         user_id = message.from_user.id
-        add_link(user_id, link)
+        connection_base.add_link(user_id, link)
     else:
         bot.send_message(message.from_user.id, "Это не является ссылкой на профиль. Нижми /reg, чтобы продолжить")
 
@@ -63,7 +68,7 @@ def check_link_is_valid(link: str):
 @bot.message_handler(commands=["inf"])
 def information(message):
     user_id = message.from_user.id
-    link = print_link(user_id)
+    link = connection_base.print_link(user_id)
     result = obtain_sales_data(link)
     if result[0]:
         games_output(message, result)
@@ -113,7 +118,7 @@ def callback_inline(call):
 def name_output(message):
     user_id = message.from_user.id
     bot.send_message(message.from_user.id, "Последняя введенная ссылка:")
-    bot.send_message(message.from_user.id, print_link(user_id))
+    bot.send_message(message.from_user.id, connection_base.print_link(user_id))
 
 
 if __name__ == '__main__':
