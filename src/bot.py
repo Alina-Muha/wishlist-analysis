@@ -2,17 +2,15 @@ import telebot
 from telebot import types
 from src.steam_web_api_interaction import obtain_sales_data
 
-# import src.data_base as base
 
 bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
 
 
-# cur, conn = base.create_connection()
-# base.create_users(cur, conn)
-
 
 @bot.message_handler(commands=["start"])
 def start(message):
+    global link
+    link = "-1"
     bot.send_message(message.from_user.id, "Привет!")
     keyboard = types.InlineKeyboardMarkup()
     callback_yes = types.InlineKeyboardButton(text="Да", callback_data="yes")
@@ -40,17 +38,17 @@ def registration(message):
 
 def get_name(message):
     global link
-    link = message.text
-    if check_link_is_valid(link):
+    link_input = message.text
+    if check_link_is_valid(link_input):
         bot.send_message(message.from_user.id, "Отлично! Я запомнил")
-        user_id = message.from_user.id
-        # base.users_add(cur, conn, user_id, link)
-    if not check_link_is_valid(link):
+        link = link_input
+    else:
         bot.send_message(message.from_user.id, "Это не является ссылкой на профиль. Нижми /reg, чтобы продолжить")
+        link = "-1"
 
 
-def check_link_is_valid(link: str):  # link -> bool
-    components = link.split('/')
+def check_link_is_valid(link_input: str):  # link -> bool
+    components = link_input.split('/')
     valid = False
     for item in range(len(components)):
         if components[item] == 'steamcommunity.com':
@@ -112,8 +110,11 @@ def callback_inline(call):
 
 @bot.message_handler(commands=["link"])
 def name_output(message):
-    bot.send_message(message.from_user.id, "Последняя введенная ссылка:")
-    bot.send_message(message.from_user.id, link)
+    if link == "-1":
+        bot.send_message(message.from_user.id, "Ссылка на профиль еще не была введена. Чтобы ее ввести, нажми /reg")
+    else:
+        bot.send_message(message.from_user.id, "Последняя введенная ссылка:")
+        bot.send_message(message.from_user.id, link)
 
 
 if __name__ == '__main__':
