@@ -2,7 +2,7 @@ import telebot
 from telebot import types
 from src.steam_web_api_interaction import obtain_sales_data
 
-bot = telebot.TeleBot('Token')
+bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
 
 
 @bot.message_handler(commands=["start"])
