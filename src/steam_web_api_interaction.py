@@ -97,7 +97,6 @@ def obtain_sales_data(url):
     wishlist_games = str_to_list_of_dicts(wishlist_games_raw.split('var')[1])  # [{'appid', 'priority', 'added'},...]
     list_games_on_sale = []
     for game in wishlist_games:
-        print(game['appid'])
         game_data = get_data_about_game(game['appid'])
         if game_data:  # not empty
             list_games_on_sale.append(game_data)
