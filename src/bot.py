@@ -2,11 +2,14 @@ import telebot
 from telebot import types
 from src.steam_web_api_interaction import obtain_sales_data
 
-bot = telebot.TeleBot('Token')
+bot = telebot.TeleBot('TOKEN')
 
 
 @bot.message_handler(commands=["start"])
 def start(message):
+    """Приветствие пользователя. Создается переменная link, в которой хранится ссылка на аккаунт.
+    Пока ссылка не введена, хранится значение -1. Создается inline клавиатура с двумя вариантами ответа."""
+
     global link
     link = "-1"
     bot.send_message(message.from_user.id, "Привет!")
@@ -20,6 +23,8 @@ def start(message):
 
 @bot.message_handler(commands=["help"])
 def help_command(message):
+    """Команда /help. Функция выводит все доступные команды."""
+
     help_message = "Это список доступных команд. Введи одну из них, чтобы получить необходимую информацию. " \
                    "\n /start - начать работу с ботом. \n /reg - регистрация. " \
                    "Напиши это, чтобы ввести ссылку на аккаунт steam для дальнейшей работы. \n /link - " \
@@ -30,11 +35,14 @@ def help_command(message):
 
 @bot.message_handler(commands=["reg"])
 def registration(message):
+    """По запросу /reg выводит просьбу о ссылке на аккаунт steam."""
     bot.send_message(message.from_user.id, "Введи ссылку на аккаунт steam")
     bot.register_next_step_handler(message, get_name)  # следующий шаг – функция get_name
 
 
 def get_name(message):
+    """Получает от пользователя ссылку на аккаунт. Если ссылка некорректна, сообщает об этом пользователю."""
+
     global link
     link_input = message.text
     if check_link_is_valid(link_input):
@@ -45,7 +53,9 @@ def get_name(message):
         link = "-1"
 
 
-def check_link_is_valid(link_input: str):  # link -> bool
+def check_link_is_valid(link_input: str):
+    """Проверяет, является ли сообщение пользователя ссылкой на профиль steam. Возвращает значение True или False."""
+
     components = link_input.split('/')
     valid = False
     for item in range(len(components)):
@@ -61,25 +71,36 @@ def check_link_is_valid(link_input: str):  # link -> bool
 
 @bot.message_handler(commands=["inf"])
 def information(message):
+    """Получает из функции obtain_sales_data информацию о том, является ли аккаунт открытым.
+    Если да, получает список игр, если нет, ссылку на настройки приватности. По команде /inf
+    выдает информацию о скидках на игры или сообщает пользователю, если это невозможно сделать.
+    В переменной privacy_settings хранит ссылку на настройки приватности аккаунта."""
+
     result = obtain_sales_data(link)
     if result[0]:
         games_output(message, result)
     else:
-        global res
-        res = result[1]
+        global privacy_settings
+        privacy_settings = result[1]
         wishlist_settings(message)
 
 
 def games_output(message, result):
+    """Выводит список игр со скидкой, который хранится в result[1]."""
+
     sale_list = result[1]
-    list_g = []
+    games_list = []
     for game in sale_list:
-        list_g.append(f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка на нее составляет {game["discount"]}%')
-    for i in list_g:
+        games_list.append(
+            f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка на нее составляет {game["discount"]}%')
+    for i in games_list:
         bot.send_message(message.from_user.id, i)
 
 
 def wishlist_settings(message):
+    """Сообщает пользователю, почему невозножно получить информацию об играх.
+    Создает inline клавиатуру с кнопкой, позволяющей перейти к настройкам приватности."""
+
     kb = types.InlineKeyboardMarkup()
     callback_settings = types.InlineKeyboardButton(
         text="Перейти к настройкам приватности", callback_data="settings")
@@ -89,6 +110,9 @@ def wishlist_settings(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
+    """Обрабатывает информацию с клавиатуры и возвращает сообщение в зависимости от нажатой кнопки. Запросы yes, no
+     из клавиатуры keyboard, функции start и запрос settings из клавиатуры kb, функция wishlist_settings."""
+
     if call.data == "yes":
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                               text="Этот бот поможет тебе получить информацию о скидках в Steam"
@@ -103,11 +127,13 @@ def callback_inline(call):
                               text=f'Открыть настройки приватности можно в клиенте стима PROFILE -'
                                    f' Edit profile - Privacy settings - My profile: Game details - '
                                    f'поставить Public либо по ссылке в браузерее (нужно быть там залогиненым):'
-                                   f' \n {res}')
+                                   f' \n {privacy_settings}')
 
 
 @bot.message_handler(commands=["link"])
 def name_output(message):
+    """По запросу /link возвращает последнюю ссылку, введенную пользователем, или сообщает, если такой ссылки нет."""
+
     if link == "-1":
         bot.send_message(message.from_user.id, "Ссылка на профиль еще не была введена. Чтобы ее ввести, нажми /reg")
     else:
