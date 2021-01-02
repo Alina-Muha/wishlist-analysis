@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from src.steam_web_api_interaction import obtain_sales_data
+from src.steam_web_api_interactions import obtain_sales_data
 
 bot = telebot.TeleBot('TOKEN')
 
@@ -86,15 +86,27 @@ def information(message):
 
 
 def games_output(message, result):
-    """Выводит список игр со скидкой, который хранится в result[1]."""
+    """Преобразует список игр result[1] в список строк games_list с информацией об игре и список ссылок на игру
+    games_link. Через функцию game_information выводит список игр со скидкой."""
 
     sale_list = result[1]
     games_list = []
+    games_link = []
     for game in sale_list:
         games_list.append(
             f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка на нее составляет {game["discount"]}%')
-    for i in games_list:
-        bot.send_message(message.from_user.id, i)
+        games_link.append(game["link"])
+    for i in range(len(games_list)):
+        game_information(message, games_link[i], games_list[i])
+
+
+def game_information(message, game_link, game):
+    """Выводит информацию об игре с кнопкой, при нажатии которой пользователь попадает на страницу игры."""
+
+    button = types.InlineKeyboardMarkup()
+    url_button = types.InlineKeyboardButton(text="Страница игры", url=game_link)
+    button.add(url_button)
+    bot.send_message(message.chat.id, game, reply_markup=button)
 
 
 def wishlist_settings(message):
