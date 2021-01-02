@@ -3,7 +3,7 @@ from requests import get
 import json
 from bs4 import BeautifulSoup as BS
 
-STEAM_API_KEY = ""  # if empty get it here https://steamcommunity.com/dev/apikey
+STEAM_API_KEY = "C66900DC016ACA765416952C6514E546"  # if empty get it here https://steamcommunity.com/dev/apikey
 
 steam_user_info = ISteamUser(steam_api_key=STEAM_API_KEY)
 
