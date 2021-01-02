@@ -36,6 +36,7 @@ def help_command(message):
 @bot.message_handler(commands=["reg"])
 def registration(message):
     """По запросу /reg выводит просьбу о ссылке на аккаунт steam."""
+    
     bot.send_message(message.from_user.id, "Введи ссылку на аккаунт steam")
     bot.register_next_step_handler(message, get_name)  # следующий шаг – функция get_name
 
