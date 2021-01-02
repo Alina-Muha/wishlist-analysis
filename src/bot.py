@@ -1,8 +1,8 @@
 import telebot
 from telebot import types
-from src.steam_web_api_interactions import obtain_sales_data
+from src.steam_web_api_interaction2 import obtain_sales_data
 
-bot = telebot.TeleBot('TOKEN')
+bot = telebot.TeleBot('1486307406:AAFYJJHnIChyLvxpS_a9O0y7xumya1__-L8')
 
 
 @bot.message_handler(commands=["start"])
@@ -92,21 +92,23 @@ def games_output(message, result):
     sale_list = result[1]
     games_list = []
     games_link = []
+    games = []
     for game in sale_list:
         games_list.append(
-            f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка на нее составляет {game["discount"]}%')
+            f'Игра {game["Name"]} сейчас стоит {game["price"]} Скидка {game["discount"]}%')
         games_link.append(game["link"])
+        games.append(f'страница {game["Name"]}')
     for i in range(len(games_list)):
-        game_information(message, games_link[i], games_list[i])
+        game_information(message, games_link[i], games_list[i], games[i])
 
 
-def game_information(message, game_link, game):
+def game_information(message, game_link, game_text, game):
     """Выводит информацию об игре с кнопкой, при нажатии которой пользователь попадает на страницу игры."""
 
     button = types.InlineKeyboardMarkup()
-    url_button = types.InlineKeyboardButton(text="Страница игры", url=game_link)
+    url_button = types.InlineKeyboardButton(text=game, url=game_link)
     button.add(url_button)
-    bot.send_message(message.chat.id, game, reply_markup=button)
+    bot.send_message(message.chat.id, game_text, reply_markup=button)
 
 
 def wishlist_settings(message):

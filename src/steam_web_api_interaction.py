@@ -1,11 +1,9 @@
-import steamwebapi
-from steamwebapi.api import ISteamUser, IPlayerService, ISteamUserStats, _SteamWebAPI
+from steamwebapi.api import ISteamUser
 from requests import get
 import json
-from ujson import loads as uloads
 from bs4 import BeautifulSoup as BS
 
-STEAM_API_KEY = "ABD6838F654CAB1520AE8729592D0A25"  # if empty get it here https://steamcommunity.com/dev/apikey
+STEAM_API_KEY = "C66900DC016ACA765416952C6514E546"  # if empty get it here https://steamcommunity.com/dev/apikey
 
 steam_user_info = ISteamUser(steam_api_key=STEAM_API_KEY)
 
@@ -60,7 +58,8 @@ def get_data_about_game(app_id):
                     return {}
                 return {"Name": game_data['name'],
                         "price": game_data['price_overview']['final_formatted'],
-                        "discount": game_data['price_overview']['discount_percent']}
+                        "discount": game_data['price_overview']['discount_percent'],
+                        "link": f'https://store.steampowered.com/app/{app_id}'}
             else:
                 return {}
         except KeyError:
@@ -81,19 +80,12 @@ def check_if_game_on_sale(game_url):  # not used
     except IndexError:
         return "No sale"
     return summaries
-    # dlc_list = game_data.find_all('div', {'class': 'game_area_dlc_list'})
-
-
-def getting_disc_v1(appid, list_games_on_sale):  # not used
-    res = check_if_game_on_sale(f'https://store.steampowered.com/app/{game["appid"]}')
-    if type(res) == dict and res['name'].count('Players Like You Love') == 0:  # second part is bugfix
-        list_games_on_sale.append({'Name': res['name'][:-1:], 'price': res['price'], 'discount': res['discount']})
-
+    
 
 def obtain_sales_data(url):
     '''
     returns:
-            [True, [{'Name', 'price', 'discount'},{}
+            [True, [{'Name', 'price', 'discount', 'link'},{}
             ...]]
         or
             [False, <link to privacy settings>]
@@ -105,22 +97,9 @@ def obtain_sales_data(url):
     wishlist_games = str_to_list_of_dicts(wishlist_games_raw.split('var')[1])  # [{'appid', 'priority', 'added'},...]
     list_games_on_sale = []
     for game in wishlist_games:
-        print(game['appid'])
         game_data = get_data_about_game(game['appid'])
         if game_data:  # not empty
             list_games_on_sale.append(game_data)
     if len(list_games_on_sale) == 0:
         return [False, f'https://steamcommunity.com/profiles/{steam_id}/edit/settings']
     return [True, list_games_on_sale]
-
-
-if __name__ == '__main__':
-    # example https://steamcommunity.com/id/lElysiuMl
-    # example with no games on sale https://steamcommunity.com/profiles/76561198098291894
-    # example with private game data https://steamcommunity.com/id/izediv
-    print('started, test game:')
-    print(get_data_about_game(859570))
-    start_url = str(input())
-    sale_list = obtain_sales_data(start_url)
-    print(sale_list)
-
