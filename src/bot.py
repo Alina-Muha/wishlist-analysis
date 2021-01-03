@@ -7,8 +7,15 @@ bot = telebot.TeleBot('TOKEN')
 
 @bot.message_handler(commands=["start"])
 def start(message):
-    """Приветствие пользователя. Создается переменная link, в которой хранится ссылка на аккаунт.
-    Пока ссылка не введена, хранится значение -1. Создается inline клавиатура с двумя вариантами ответа."""
+    """
+    Приветствие пользователя. Создается переменная link, в которой хранится ссылка на аккаунт.
+    Пока ссылка не введена, хранится значение -1. Создается inline клавиатура с двумя вариантами ответа.
+    
+    link: str 
+        введенная пользователем ссылка на аккаунт Steam. Пока ссылка не введена, хранит строку "-1".
+    keyboard
+        клавиатура с двумя кнопками "Да" и "Я уже все знаю". Выдается при отправке пользователю сообщения.
+    """
 
     global link
     link = "-1"
@@ -23,7 +30,9 @@ def start(message):
 
 @bot.message_handler(commands=["help"])
 def help_command(message):
-    """Команда /help. Функция выводит все доступные команды."""
+    """
+    Команда /help. Функция выводит все доступные команды.
+    """
 
     help_message = "Это список доступных команд. Введи одну из них, чтобы получить необходимую информацию. " \
                    "\n /start - начать работу с ботом. \n /reg - регистрация. " \
@@ -41,7 +50,9 @@ def registration(message):
 
 
 def get_name(message):
-    """Получает от пользователя ссылку на аккаунт. Если ссылка некорректна, сообщает об этом пользователю."""
+    """
+    Получает от пользователя ссылку на аккаунт. Если ссылка некорректна, сообщает об этом пользователю.
+    """
 
     global link
     link_input = message.text
@@ -54,7 +65,12 @@ def get_name(message):
 
 
 def check_link_is_valid(link_input: str):
-    """Проверяет, является ли сообщение пользователя ссылкой на профиль steam. Возвращает значение True или False."""
+    """
+    Проверяет, является ли сообщение пользователя ссылкой на профиль steam. Возвращает значение True или False.
+    
+    components: list
+        список, содержащий ссылку на аккаунт.    
+    """
 
     components = link_input.split('/')
     valid = False
@@ -71,10 +87,25 @@ def check_link_is_valid(link_input: str):
 
 @bot.message_handler(commands=["inf"])
 def information(message):
-    """Получает из функции obtain_sales_data информацию о том, является ли аккаунт открытым.
+    """
+    Получает из функции obtain_sales_data информацию о том, является ли аккаунт открытым.
     Если да, получает список игр, если нет, ссылку на настройки приватности. По команде /inf
     выдает информацию о скидках на игры или сообщает пользователю, если это невозможно сделать.
-    В переменной privacy_settings хранит ссылку на настройки приватности аккаунта."""
+    В переменной privacy_settings хранит ссылку на настройки приватности аккаунта.
+    
+    result: list
+        список из двух элементов:
+    result[0]: bool
+        информация о том, является ли аккаунт открытым и содержит ли игры в вишлисте.
+    result[1]: list
+        при result[0] = True:
+        список с информацией об играх ["Name", "price", "discount", "link"]
+        [название игры, ее цена, скидка, ссылка на игру]
+        при result[0] = False:
+        ссылка на настройки приватности аккаунта.
+    privacy settings: str 
+        ссылка на настройки приватности.
+    """
 
     result = obtain_sales_data(link)
     if result[0]:
@@ -86,8 +117,17 @@ def information(message):
 
 
 def games_output(message, result):
-    """Преобразует список игр result[1] в список строк games_list с информацией об игре и список ссылок на игру
-    games_link. Через функцию game_information выводит список игр со скидкой."""
+    """
+    Преобразует список игр result[1] в список строк games_list с информацией об игре и список ссылок на игру
+    games_link. Через функцию game_information выводит список игр со скидкой.
+    
+    games_list: list
+        список строк с сообщениями об играх, которые будут отправлены пользователю.
+    games_link: list
+        список строк с ссылками на игры. 
+    games: list
+        список строк с сообщениями, написанными на кнопках.
+    """
 
     sale_list = result[1]
     games_list = []
@@ -103,7 +143,9 @@ def games_output(message, result):
 
 
 def game_information(message, game_link, game_text, game):
-    """Выводит информацию об игре с кнопкой, при нажатии которой пользователь попадает на страницу игры."""
+    """
+    Выводит информацию об игре с кнопкой, при нажатии которой пользователь попадает на страницу игры.
+    """
 
     button = types.InlineKeyboardMarkup()
     url_button = types.InlineKeyboardButton(text=game, url=game_link)
@@ -112,8 +154,10 @@ def game_information(message, game_link, game_text, game):
 
 
 def wishlist_settings(message):
-    """Сообщает пользователю, почему невозножно получить информацию об играх.
-    Создает inline клавиатуру с кнопкой, позволяющей перейти к настройкам приватности."""
+    """
+    Сообщает пользователю, почему невозножно получить информацию об играх.
+    Создает inline клавиатуру с кнопкой, позволяющей перейти к настройкам приватности.
+    """
 
     kb = types.InlineKeyboardMarkup()
     callback_settings = types.InlineKeyboardButton(
@@ -124,8 +168,10 @@ def wishlist_settings(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    """Обрабатывает информацию с клавиатуры и возвращает сообщение в зависимости от нажатой кнопки. Запросы yes, no
-     из клавиатуры keyboard, функции start и запрос settings из клавиатуры kb, функция wishlist_settings."""
+    """
+    Обрабатывает информацию с клавиатуры и возвращает сообщение в зависимости от нажатой кнопки. Запросы yes, no
+     из клавиатуры keyboard, функции start и запрос settings из клавиатуры kb, функция wishlist_settings.
+     """
 
     if call.data == "yes":
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
@@ -146,7 +192,9 @@ def callback_inline(call):
 
 @bot.message_handler(commands=["link"])
 def name_output(message):
-    """По запросу /link возвращает последнюю ссылку, введенную пользователем, или сообщает, если такой ссылки нет."""
+    """
+    По запросу /link возвращает последнюю ссылку, введенную пользователем, или сообщает, если такой ссылки нет.
+    """
 
     if link == "-1":
         bot.send_message(message.from_user.id, "Ссылка на профиль еще не была введена. Чтобы ее ввести, нажми /reg")
